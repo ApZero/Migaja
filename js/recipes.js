@@ -188,13 +188,29 @@ const Recipes = {
       div.className = 'ing-row';
       div.dataset.rowId = rowId;
       div.innerHTML = `
-        <select class="ing-select">${catalog.length ? ingOptionsHtml : '<option value="">(sin ingredientes en catálogo)</option>'}</select>
-        <input type="number" step="0.1" class="ing-amount" placeholder="cantidad" value="${item?.amount ?? ''}">
-        <input type="text" class="ing-brand" placeholder="marca (opc.)" value="${item?.brand ?? ''}">
-        <button type="button" class="ing-remove">✕</button>
+        <div class="ing-row-top">
+          <select class="ing-select">${catalog.length ? ingOptionsHtml : '<option value="">(sin ingredientes en catálogo)</option>'}</select>
+          <button type="button" class="ing-remove">✕</button>
+        </div>
+        <div class="ing-row-bottom">
+          <div class="ing-amount-wrap">
+            <input type="number" step="0.1" class="ing-amount" placeholder="cantidad" value="${item?.amount ?? ''}">
+            <span class="ing-unit"></span>
+          </div>
+          <input type="text" class="ing-brand" placeholder="marca (opc.)" value="${item?.brand ?? ''}">
+        </div>
       `;
       rowsEl.appendChild(div);
-      if (item) div.querySelector('.ing-select').value = item.ingredientId;
+      const selectEl = div.querySelector('.ing-select');
+      const unitEl = div.querySelector('.ing-unit');
+      const byId = new Map(catalog.map(i => [i.id, i]));
+      function updateUnit() {
+        const ing = byId.get(selectEl.value);
+        unitEl.textContent = ing ? (ing.baseUnit === 'unidad' ? 'unidad' : ing.baseUnit) : '';
+      }
+      if (item) selectEl.value = item.ingredientId;
+      updateUnit();
+      selectEl.onchange = updateUnit;
       div.querySelector('.ing-remove').onclick = () => div.remove();
     }
 

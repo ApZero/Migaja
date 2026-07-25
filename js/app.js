@@ -5,6 +5,7 @@ const App = {
 
   init() {
     DB.seedIfEmpty();
+    DB.ensureBaselineIngredients();
     const result = Backup.runDailyBackupIfNeeded();
     if (result.created) App.toastQueued = 'Respaldo automático del día creado';
 
@@ -47,7 +48,6 @@ const App = {
     const allBread = breadTryouts.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const lastBread = allBread[0];
     const lastBreadRecipe = lastBread ? recipes.find(r => r.id === lastBread.recipeId) : null;
-    const meta = DB.getMeta();
 
     el.innerHTML = `
       <div class="section-head"><h2>Hoy</h2></div>
@@ -72,17 +72,7 @@ const App = {
       <div class="card">
         <p class="muted">Todavía no registraste ninguna prueba de pan. La pestaña <strong>Pan</strong> te espera 🍞</p>
       </div>`}
-      <div class="card">
-        <div class="row between">
-          <div>
-            <p class="muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.4px;">Respaldo</p>
-            <p>${meta.lastBackupDate === new Date().toISOString().slice(0,10) ? 'Al día — respaldo automático de hoy listo' : 'Todavía no se generó el respaldo de hoy'}</p>
-          </div>
-          <button class="btn small secondary" id="btnGoBackup">Ver</button>
-        </div>
-      </div>
     `;
-    el.querySelector('#btnGoBackup').onclick = () => App.showTab('respaldo');
   },
 
   renderRespaldo() {
@@ -91,7 +81,7 @@ const App = {
     const meta = DB.getMeta();
 
     el.innerHTML = `
-      <div class="section-head"><h2>Respaldo</h2></div>
+      <div class="section-head"><h2>Backup</h2></div>
       <div class="card">
         <p style="font-size:0.9rem;">Cada día que abrís la app se guarda automáticamente una copia de tus datos (hasta 14 días). También podés descargar o importar un respaldo manualmente.</p>
         <p class="muted" style="margin-top:8px;">Último respaldo automático: <strong>${meta.lastBackupDate || 'ninguno todavía'}</strong></p>

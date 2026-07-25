@@ -169,12 +169,28 @@ const Tryouts = {
       const div = document.createElement('div');
       div.className = 'ing-row';
       div.innerHTML = `
-        <select class="extra-select">${catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}</select>
-        <input type="number" step="0.1" class="extra-amount" placeholder="cantidad" value="${e?.amount ?? ''}">
-        <button type="button" class="ing-remove">✕</button>
+        <div class="ing-row-top">
+          <select class="extra-select">${catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}</select>
+          <button type="button" class="ing-remove">✕</button>
+        </div>
+        <div class="ing-row-bottom">
+          <div class="ing-amount-wrap">
+            <input type="number" step="0.1" class="extra-amount" placeholder="cantidad" value="${e?.amount ?? ''}">
+            <span class="ing-unit"></span>
+          </div>
+        </div>
       `;
       extraRowsEl.appendChild(div);
-      if (e) div.querySelector('.extra-select').value = e.ingredientId;
+      const selectEl = div.querySelector('.extra-select');
+      const unitEl = div.querySelector('.ing-unit');
+      const byId = new Map(catalog.map(i => [i.id, i]));
+      function updateUnit() {
+        const ing = byId.get(selectEl.value);
+        unitEl.textContent = ing ? (ing.baseUnit === 'unidad' ? 'unidad' : ing.baseUnit) : '';
+      }
+      if (e) selectEl.value = e.ingredientId;
+      updateUnit();
+      selectEl.onchange = updateUnit;
       div.querySelector('.ing-remove').onclick = () => div.remove();
     }
 

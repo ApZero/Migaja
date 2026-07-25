@@ -152,11 +152,20 @@ const DB = {
 
   seedIfEmpty() {
     if (DB.getIngredients().length > 0) return;
+    DB.saveIngredients(DB.baselineIngredients());
+  },
+
+  // Ingredientes base sugeridos. Se usan tanto para la siembra inicial
+  // como para completar catálogos ya existentes que todavía no los tengan.
+  baselineIngredients() {
     const now = new Date().toISOString();
-    const seedIngredients = [
+    return [
       { id: uid(), name: 'Harina de arroz', category: 'harina', baseUnit: 'g', purchase: { price: 12000, size: 1000 }, nutrition: { kcal: 366, protein: 6, carbs: 80, fat: 1.4, fiber: 2.4, sodium: 5 }, brand: '', createdAt: now },
       { id: uid(), name: 'Almidón de mandioca', category: 'almidon', baseUnit: 'g', purchase: { price: 9000, size: 1000 }, nutrition: { kcal: 340, protein: 0.3, carbs: 84, fat: 0.1, fiber: 1, sodium: 1 }, brand: '', createdAt: now },
       { id: uid(), name: 'Fécula de maíz', category: 'almidon', baseUnit: 'g', purchase: { price: 8500, size: 500 }, nutrition: { kcal: 381, protein: 0.3, carbs: 91, fat: 0.1, fiber: 0.9, sodium: 9 }, brand: '', createdAt: now },
+      { id: uid(), name: 'Fécula de papa', category: 'almidon', baseUnit: 'g', purchase: { price: 9500, size: 1000 }, nutrition: { kcal: 343, protein: 0.1, carbs: 83, fat: 0.1, fiber: 3, sodium: 6 }, brand: '', createdAt: now },
+      { id: uid(), name: 'Psyllium husk powder', category: 'aditivo', baseUnit: 'g', purchase: { price: 35000, size: 250 }, nutrition: { kcal: 296, protein: 2.7, carbs: 88, fat: 0.5, fiber: 71, sodium: 21 }, brand: '', createdAt: now },
+      { id: uid(), name: 'Psyllium husk cáscara', category: 'aditivo', baseUnit: 'g', purchase: { price: 32000, size: 250 }, nutrition: { kcal: 296, protein: 2.7, carbs: 88, fat: 0.5, fiber: 71, sodium: 21 }, brand: '', createdAt: now },
       { id: uid(), name: 'Goma xántica', category: 'aditivo', baseUnit: 'g', purchase: { price: 45000, size: 200 }, nutrition: { kcal: 336, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0 }, brand: '', createdAt: now },
       { id: uid(), name: 'Levadura seca', category: 'leudante', baseUnit: 'g', purchase: { price: 18000, size: 125 }, nutrition: { kcal: 325, protein: 40, carbs: 41, fat: 7, fiber: 27, sodium: 51 }, brand: '', createdAt: now },
       { id: uid(), name: 'Huevo', category: 'liquido', baseUnit: 'unidad', purchase: { price: 1200, size: 1 }, nutrition: { kcal: 78, protein: 6.3, carbs: 0.6, fat: 5.3, fiber: 0, sodium: 62 }, brand: '', createdAt: now },
@@ -165,7 +174,16 @@ const DB = {
       { id: uid(), name: 'Azúcar', category: 'endulzante', baseUnit: 'g', purchase: { price: 6500, size: 1000 }, nutrition: { kcal: 387, protein: 0, carbs: 100, fat: 0, fiber: 0, sodium: 0 }, brand: '', createdAt: now },
       { id: uid(), name: 'Sal', category: 'otro', baseUnit: 'g', purchase: { price: 3000, size: 500 }, nutrition: { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 38758 }, brand: '', createdAt: now }
     ];
-    DB.saveIngredients(seedIngredients);
+  },
+
+  // Agrega ingredientes base que todavía no existan en el catálogo (por nombre),
+  // sin duplicar ni tocar los que el usuario ya tiene editados.
+  ensureBaselineIngredients() {
+    const existing = DB.getIngredients();
+    const existingNames = new Set(existing.map(i => i.name.trim().toLowerCase()));
+    const missing = DB.baselineIngredients().filter(i => !existingNames.has(i.name.trim().toLowerCase()));
+    if (missing.length) DB.saveIngredients(existing.concat(missing));
+    return missing.length;
   }
 };
 

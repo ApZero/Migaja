@@ -278,15 +278,29 @@ const Bread = {
       const div = document.createElement('div');
       div.className = 'ing-row';
       div.innerHTML = `
-        <select class="extra-select">${catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}</select>
-        <input type="number" step="0.1" class="extra-amount" placeholder="cantidad" value="${e?.amount ?? ''}">
-        <button type="button" class="ing-remove">✕</button>
+        <div class="ing-row-top">
+          <select class="extra-select">${catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}</select>
+          <button type="button" class="ing-remove">✕</button>
+        </div>
+        <div class="ing-row-bottom">
+          <div class="ing-amount-wrap">
+            <input type="number" step="0.1" class="extra-amount" placeholder="cantidad" value="${e?.amount ?? ''}">
+            <span class="ing-unit"></span>
+          </div>
+        </div>
       `;
       extraRowsEl.appendChild(div);
-      if (e) div.querySelector('.extra-select').value = e.ingredientId;
+      const selectEl = div.querySelector('.extra-select');
+      const unitEl = div.querySelector('.ing-unit');
+      function updateUnit() {
+        const ing = byId.get(selectEl.value);
+        unitEl.textContent = ing ? (ing.baseUnit === 'unidad' ? 'unidad' : ing.baseUnit) : '';
+      }
+      if (e) selectEl.value = e.ingredientId;
+      updateUnit();
       div.querySelector('.ing-remove').onclick = () => { div.remove(); refreshHydrationPreview(); };
       div.querySelectorAll('input, select').forEach(inp => inp.addEventListener('input', refreshHydrationPreview));
-      div.querySelector('select').addEventListener('change', refreshHydrationPreview);
+      selectEl.addEventListener('change', () => { updateUnit(); refreshHydrationPreview(); });
     }
     (t?.extraIngredients || []).forEach(addExtraRow);
     document.getElementById('btnAddExtra').onclick = () => { addExtraRow(); refreshHydrationPreview(); };
